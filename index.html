@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loja Exemplo — Avaliação UX/UI 2025</title>
+  <style>
+    /* =========================
+       CSS (alguns acertos + alguns erros intencionais)
+       ========================= */
+
+    :root {
+      --primary: #2d6cdf; /* bom contraste com branco */
+      --secondary: #7a7a7a;
+      --bg: #ffffff;
+      --text: #222222;
+      --muted: #f3f4f6;
+      --danger: #e11d48;
+    }
+
+    html { font-size: 16px; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* Layout responsivo (acerto) */
+    .container { width: min(1100px, 92%); margin: 0 auto; }
+
+    /* Header */
+    header { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #e5e7eb; z-index: 10; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: .75rem 0; }
+    .logo { font-weight: 800; letter-spacing: .5px; }
+
+    /* Navegação (parte boa + parte confusa de propósito) */
+    nav ul { list-style: none; display: flex; gap: 1rem; padding: 0; margin: 0; }
+    nav a { text-decoration: none; color: #111; font-weight: 600; }
+    /* menu "Profundo" que exige cliques demais (erro) */
+    .mega { position: relative; }
+    .mega > .deep {
+      display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid #e5e7eb; padding: .75rem; width: 260px;
+    }
+    .mega:hover > .deep { display: block; }
+    .deep .level-2 { display: none; margin-top: .5rem; }
+    .deep li:hover > .level-2 { display: block; }
+    .deep a { display: block; padding: .25rem 0; font-weight: 500; }
+
+    /* Hero (inclui erro de contraste no subtítulo) */
+    .hero {
+      background: linear-gradient(135deg, #e9f0ff, #ffffff);
+      padding: 2.5rem 0 2rem;
+    }
+    .hero h1 { font-size: clamp(1.6rem, 3vw + 1rem, 2.6rem); margin: 0 0 .25rem; }
+    .hero p.bad-contrast { color: #bfbfbf; /* contraste ruim de propósito */ margin-top: .25rem; }
+
+    /* Botões (inconsistências intencionais) */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: .65rem 1rem; border-radius: .5rem; border: none; cursor: pointer; font-weight: 700; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-secondary { background: #d1d5db; color: #111; border-radius: 0; /* forma diferente (erro de consistência) */ }
+    .btn-ghost { background: transparent; color: var(--primary); border: 1px dashed var(--primary); /* dashed estranho */ }
+
+    /* Cards de produtos (acerto geral) */
+    .grid { display: grid; gap: 1rem; grid-template-columns: repeat(12, 1fr); }
+    .card { grid-column: span 12; background: white; border: 1px solid #e5e7eb; border-radius: .75rem; overflow: hidden; }
+    .card .media { aspect-ratio: 16/9; background: #eef2ff; display: grid; place-items: center; font-weight: 700; }
+    .card h3 { margin: .75rem 1rem 0; }
+    .card p { margin: .25rem 1rem 1rem; color: #4b5563; }
+
+    /* Formulário (com erros de UX propositais) */
+    form.checkout { background: var(--muted); padding: 1rem; border-radius: .75rem; display: grid; gap: .75rem; }
+    form.checkout label { display: block; font-weight: 600; margin-bottom: .25rem; }
+    form.checkout input, form.checkout select { width: 100%; padding: .6rem; border: 1px solid #cbd5e1; border-radius: .5rem; }
+    .hint { font-size: .85rem; color: #6b7280; }
+    .error { display:none; font-size: .85rem; color: var(--danger); margin-top: .25rem; }
+
+    /* Seção de conteúdo com hierarquia boa */
+    .section { padding: 2rem 0; }
+    .section h2 { margin: 0 0 .75rem; font-size: clamp(1.2rem, 1.5vw + .8rem, 1.8rem); }
+    .muted { color: #6b7280; }
+
+    /* Footer (um link com rótulo vago "Clique aqui" – erro de CTA) */
+    footer { border-top: 1px solid #e5e7eb; padding: 2rem 0; background: #fff; }
+
+    /* Responsivo */
+    @media (min-width: 700px) {
+      .card { grid-column: span 6; }
+    }
+    @media (min-width: 1000px) {
+      .card { grid-column: span 4; }
+    }
+
+    /* Acessibilidade parcial: foco visível em alguns, ausente noutros (erro) */
+    .btn-primary:focus { outline: 3px solid #93c5fd; outline-offset: 2px; }
+    a:focus { outline: none; /* erro intencional: foco invisível em links */ }
+
+    /* Microinterações simples */
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    /* Espaçamento inconsistente em um bloco (erro) */
+    .promo { padding: .25rem 0 2.5rem 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container topbar" role="banner">
+      <div class="logo">Loja Exemplo</div>
+      <nav aria-label="principal">
+        <ul>
+          <li><a href="#produtos">Produtos</a></li>
+          <li class="mega"><a href="#">Categorias</a>
+            <ul class="deep" aria-label="submenu">
+              <li><a href="#">Tecnologia</a>
+                <ul class="level-2">
+                  <li><a href="#">Subcategoria A</a></li>
+                  <li><a href="#">Subcategoria B</a></li>
+                </ul>
+              </li>
+              <li><a href="#">Casa</a>
+                <ul class="level-2">
+                  <li><a href="#">Subcategoria C</a></li>
+                  <li><a href="#">Subcategoria D</a></li>
+                </ul>
+              </li>
+              <li><a href="#">Moda</a>
+                <ul class="level-2">
+                  <li><a href="#">Subcategoria E</a></li>
+                  <li><a href="#">Subcategoria F</a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><a href="#form">Cadastro</a></li>
+          <li><a href="#faq">Ajuda</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO: tem subtítulo com contraste ruim (erro), mas título e CTA fortes (acerto) -->
+    <section class="hero">
+      <div class="container">
+        <h1>Compre melhor. Mais rápido.</h1>
+        <p class="bad-contrast">Entrega em todo o Brasil com condições imperdíveis.</p>
+        <div style="display:flex; gap:.5rem; margin-top:.75rem;">
+          <button class="btn btn-primary" id="btn-comece-agora" aria-label="Começar agora">Comece agora</button>
+          <button class="btn btn-secondary" id="btn-clique-aqui">Clique aqui</button> <!-- CTA vago (erro) -->
+          <button class="btn btn-ghost" id="btn-simular-lento">Simular carregamento</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Promo: imagem sem alt (erro de acessibilidade), hierarquia ok -->
+    <section class="section promo" id="produtos">
+      <div class="container">
+        <h2>Mais vendidos</h2>
+        <p class="muted">Escolhas populares esta semana</p>
+        <div class="grid" id="lista-produtos">
+          <article class="card">
+            <div class="media"><img src="https://picsum.photos/640/360" width="100%" height="100%"></div>
+            <h3>Fone Pro Max</h3>
+            <p>Cancelamento de ruído ativo e bateria estendida.</p>
+            <div style="display:flex;gap:.5rem; padding:0 1rem 1rem;">
+              <button class="btn btn-primary add">Adicionar ao carrinho</button>
+              <button class="btn btn-secondary">Detalhes</button>
+            </div>
+          </article>
+          <article class="card">
+            <div class="media">Imagem indisponível</div> <!-- feedback textual (acerto) -->
+            <h3>Smartwatch Fit 3</h3>
+            <p>Monitore saúde e notificações em um só lugar.</p>
+            <div style="display:flex;gap:.5rem; padding:0 1rem 1rem;">
+              <button class="btn btn-primary add">Adicionar ao carrinho</button>
+              <button class="btn btn-secondary">Detalhes</button>
+            </div>
+          </article>
+          <article class="card">
+            <div class="media"><img src="https://picsum.photos/640/360?2" width="100%" height="100%" alt="Notebook cinza sobre mesa"></div>
+            <h3>Notebook Air 14"</h3>
+            <p>Leve, rápido e pronto para o dia a dia.</p>
+            <div style="display:flex;gap:.5rem; padding:0 1rem 1rem;">
+              <button class="btn btn-primary add">Adicionar ao carrinho</button>
+              <button class="btn btn-secondary">Detalhes</button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formulário com campos excessivos, sem indicador de progresso (erros), mas com validação inline (acerto) -->
+    <section class="section" id="form">
+      <div class="container">
+        <h2>Cadastro completo (leva menos de 5 minutos*)</h2>
+        <p class="muted">*Afirmação discutível — formulário longo (erro)</p>
+        <form class="checkout" novalidate>
+          <div>
+            <label for="nome">Nome completo</label>
+            <input id="nome" name="nome" required placeholder="Ex.: Maria da Silva" />
+            <div class="error" id="err-nome">Informe o nome completo.</div>
+          </div>
+          <div>
+            <label for="cpf">CPF</label>
+            <input id="cpf" name="cpf" inputmode="numeric" minlength="11" maxlength="11" required />
+            <div class="error" id="err-cpf">CPF deve ter 11 dígitos.</div>
+          </div>
+          <div>
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" required />
+            <div class="error" id="err-email">Informe um e-mail válido.</div>
+          </div>
+          <div>
+            <label for="telefone">Telefone</label>
+            <input id="telefone" name="telefone" type="tel" placeholder="(00) 00000-0000" required />
+            <div class="error" id="err-telefone">Informe um telefone válido.</div>
+          </div>
+          <div>
+            <label for="endereco">Endereço completo</label>
+            <input id="endereco" name="endereco" required />
+          </div>
+          <div>
+            <label for="nasc">Data de nascimento</label>
+            <input id="nasc" name="nasc" type="date" required />
+          </div>
+          <div>
+            <label for="estado-civil">Estado civil</label>
+            <select id="estado-civil" required>
+              <option value="">Selecione</option>
+              <option>Solteiro(a)</option>
+              <option>Casado(a)</option>
+              <option>Divorciado(a)</option>
+              <option>Viúvo(a)</option>
+            </select>
+            <div class="hint">Campo possivelmente desnecessário (erro)</div>
+          </div>
+          <div>
+            <label for="como-soube">Como soube de nós?</label>
+            <select id="como-soube">
+              <option>Amigos</option>
+              <option>Redes sociais</option>
+              <option>Busca</option>
+              <option>TV/Radio</option>
+            </select>
+          </div>
+          <div>
+            <label for="senha">Senha</label>
+            <input id="senha" name="senha" type="password" required minlength="8" />
+            <div class="error" id="err-senha">Senha deve ter pelo menos 8 caracteres.</div>
+          </div>
+          <div>
+            <label for="confirma">Confirmar senha</label>
+            <input id="confirma" name="confirma" type="password" required />
+            <div class="error" id="err-confirma">As senhas não coincidem.</div>
+          </div>
+          <div>
+            <button type="submit" class="btn btn-primary">Criar conta</button>
+            <button type="button" class="btn btn-secondary" id="btn-convidado">Checkout como convidado</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- FAQ (conteúdo escaneável — acerto) -->
+    <section class="section" id="faq">
+      <div class="container">
+        <h2>Perguntas frequentes</h2>
+        <details>
+          <summary>Quais são os prazos de entrega?</summary>
+          <p>De 3 a 7 dias úteis, dependendo da região.</p>
+        </details>
+        <details>
+          <summary>Quais formas de pagamento são aceitas?</summary>
+          <ul>
+            <li>Cartão de crédito</li>
+            <li>Boleto</li>
+            <li>PIX</li>
+          </ul>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p class="muted">© 2025 Loja Exemplo — Alguns direitos reservados.</p>
+      <p><a href="#" id="link-vago">Clique aqui</a> para saber mais.</p>
+    </div>
+  </footer>
+
+  <script>
+    // =========================
+    // JS (microinterações + alguns comportamentos questionáveis)
+    // =========================
+
+    // Simular ação lenta (para avaliar feedback de carregamento)
+    const btnLento = document.getElementById('btn-simular-lento');
+    btnLento.addEventListener('click', () => {
+      const original = btnLento.textContent;
+      btnLento.disabled = true;
+      btnLento.textContent = 'Carregando…';
+      const spinner = document.createElement('span');
+      spinner.setAttribute('role','status');
+      spinner.setAttribute('aria-live','polite');
+      spinner.style.marginLeft = '.5rem';
+      spinner.textContent = '⏳';
+      btnLento.appendChild(spinner);
+      setTimeout(() => {
+        btnLento.disabled = false;
+        btnLento.textContent = original;
+        alert('Ação concluída! (feedback modal intrusivo — para avaliar)');
+      }, 3500); // > 3s (erro de performance percebida)
+    });
+
+    // Adicionar ao carrinho com feedback não intrusivo (acerto)
+    document.querySelectorAll('.add').forEach(btn => {
+      btn.addEventListener('click', () => {
+        toast('Produto adicionado ao carrinho.');
+      });
+    });
+
+    // CTA vago que não deixa claro a próxima etapa (erro)
+    document.getElementById('btn-clique-aqui').addEventListener('click', () => {
+      // Leva para uma âncora sem contexto (erro de UX)
+      location.hash = '#form';
+    });
+
+    // Validação simples inline (acerto)
+    const form = document.querySelector('form.checkout');
+    form.addEventListener('input', (e) => {
+      if (e.target.id === 'cpf') {
+        const ok = /^\d{11}$/.test(e.target.value);
+        toggleError('err-cpf', !ok);
+      }
+      if (e.target.id === 'email') {
+        const ok = /.+@.+\..+/.test(e.target.value);
+        toggleError('err-email', !ok);
+      }
+      if (e.target.id === 'nome') {
+        toggleError('err-nome', e.target.value.trim().split(' ').length < 2);
+      }
+      if (e.target.id === 'senha' || e.target.id === 'confirma') {
+        const senha = document.getElementById('senha').value;
+        const confirma = document.getElementById('confirma').value;
+        toggleError('err-senha', senha.length < 8);
+        toggleError('err-confirma', confirma && senha !== confirma);
+      }
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const errosVisiveis = [...form.querySelectorAll('.error')].some(el => el.style.display === 'block');
+      if (errosVisiveis) {
+        toast('Corrija os campos destacados para continuar.', true);
+        return;
+      }
+      toast('Conta criada com sucesso!');
+    });
+
+    document.getElementById('btn-convidado').addEventListener('click', () => {
+      toast('Checkout como convidado selecionado.');
+    });
+
+    function toggleError(id, show) {
+      const el = document.getElementById(id);
+      el.style.display = show ? 'block' : 'none';
+    }
+
+    // Toast minimalista (feedback)
+    const toastBox = document.createElement('div');
+    toastBox.style.position = 'fixed';
+    toastBox.style.bottom = '16px';
+    toastBox.style.right = '16px';
+    toastBox.style.display = 'grid';
+    toastBox.style.gap = '8px';
+    toastBox.style.zIndex = '9999';
+    document.body.appendChild(toastBox);
+
+    function toast(msg, danger = false) {
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.padding = '10px 14px';
+      t.style.background = danger ? '#fee2e2' : '#ecfeff';
+      t.style.border = '1px solid #e5e7eb';
+      t.style.borderRadius = '10px';
+      t.style.boxShadow = '0 6px 18px rgba(0,0,0,.08)';
+      toastBox.appendChild(t);
+      setTimeout(() => t.remove(), 2200);
+    }
+
+    // Link vago (erro de contexto em CTA) — mostra um conteúdo pouco útil
+    document.getElementById('link-vago').addEventListener('click', (e) => {
+      e.preventDefault();
+      alert('Mais o quê? Esta mensagem não explica o próximo passo.');
+    });
+
+    // Acessibilidade parcial: atalho de teclado funciona, mas não anunciado (erro)
+    window.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'f' && e.altKey) {
+        document.getElementById('form').scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  </script>
+</body>
+</html>
